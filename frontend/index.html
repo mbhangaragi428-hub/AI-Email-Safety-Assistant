@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Email Safety Assistant</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef3f9;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        h1 {
+            text-align: center;
+            color: #172554;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 17px;
+            margin-bottom: 30px;
+        }
+
+        .info {
+            background: #eff6ff;
+            border-left: 5px solid #2563eb;
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #334155;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 190px;
+            padding: 16px;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            resize: vertical;
+            font-size: 16px;
+            outline: none;
+            font-family: Arial, sans-serif;
+        }
+
+        textarea:focus {
+            border-color: #2563eb;
+        }
+
+        .sample-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .sample-buttons button {
+            margin-top: 0;
+            background: #e2e8f0;
+            color: #1e293b;
+            font-size: 14px;
+            padding: 10px;
+        }
+
+        .sample-buttons button:hover {
+            background: #cbd5e1;
+        }
+
+        .main-button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            background: #2563eb;
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .main-button:hover {
+            background: #1d4ed8;
+        }
+
+        .main-button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .clear-button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background: white;
+            color: #334155;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .clear-button:hover {
+            background: #f1f5f9;
+        }
+
+        #error {
+            color: #dc2626;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #result {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 15px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+        }
+
+        .result-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 18px;
+            color: #172554;
+        }
+
+        .result-item {
+            margin: 12px 0;
+            font-size: 17px;
+            color: #334155;
+        }
+
+        .result-item strong {
+            font-weight: bold;
+        }
+
+        .safe {
+            color: #15803d;
+        }
+
+        .danger {
+            color: #dc2626;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .sample-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>AI Email Safety Assistant</h1>
+
+    <p class="subtitle">
+        Intelligent email spam detection and risk analysis
+    </p>
+
+    <div class="info">
+        This system uses Machine Learning to classify emails as
+        <b>SPAM</b> or <b>HAM</b> and estimates the associated risk level.
+    </div>
+
+    <textarea
+        id="emailText"
+        placeholder="Paste your email here..."
+    ></textarea>
+
+    <div class="sample-buttons">
+
+        <button onclick="loadHamEmail()">
+            Load Normal Email
+        </button>
+
+        <button onclick="loadSpamEmail()">
+            Load Spam Example
+        </button>
+
+    </div>
+
+    <button
+        class="main-button"
+        id="analyzeButton"
+        onclick="analyzeEmail()"
+    >
+        ANALYZE EMAIL
+    </button>
+
+    <button
+        class="clear-button"
+        onclick="clearEmail()"
+    >
+        CLEAR
+    </button>
+
+    <div id="error"></div>
+
+    <div id="result">
+
+        <div class="result-title">
+            Analysis Result
+        </div>
+
+        <div class="result-item">
+            Prediction:
+            <strong id="prediction"></strong>
+        </div>
+
+        <div class="result-item">
+            Risk Level:
+            <strong id="risk"></strong>
+        </div>
+
+        <div class="result-item">
+            Confidence:
+            <strong id="confidence"></strong>%
+        </div>
+
+    </div>
+
+    <div class="footer">
+        AI Email Safety Assistant | Machine Learning Project
+    </div>
+
+</div>
+
+
+<script>
+
+async function analyzeEmail() {
+
+    const email = document.getElementById("emailText").value;
+    const resultBox = document.getElementById("result");
+    const errorBox = document.getElementById("error");
+    const analyzeButton = document.getElementById("analyzeButton");
+
+    errorBox.innerText = "";
+
+    if (email.trim() === "") {
+        errorBox.innerText = "Please enter an email.";
+        resultBox.style.display = "none";
+        return;
+    }
+
+    analyzeButton.disabled = true;
+    analyzeButton.innerText = "ANALYZING...";
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/predict",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    email: email
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.error) {
+            errorBox.innerText = data.error;
+            resultBox.style.display = "none";
+            return;
+        }
+
+        const predictionElement =
+            document.getElementById("prediction");
+
+        const riskElement =
+            document.getElementById("risk");
+
+        predictionElement.innerText =
+            data.prediction;
+
+        riskElement.innerText =
+            data.risk;
+
+        document.getElementById("confidence").innerText =
+            data.confidence;
+
+        predictionElement.className = "";
+
+        riskElement.className = "";
+
+        if (data.prediction === "SPAM") {
+            predictionElement.className = "danger";
+            riskElement.className = "danger";
+        } else {
+            predictionElement.className = "safe";
+            riskElement.className = "safe";
+        }
+
+        resultBox.style.display = "block";
+
+    } catch (error) {
+
+        errorBox.innerText =
+            "Could not connect to the AI server.";
+
+        resultBox.style.display = "none";
+
+    } finally {
+
+        analyzeButton.disabled = false;
+        analyzeButton.innerText = "ANALYZE EMAIL";
+
+    }
+}
+
+
+function loadHamEmail() {
+
+    document.getElementById("emailText").value =
+        "Hi, please send me the project report before tomorrow's class.";
+
+    document.getElementById("result").style.display = "none";
+    document.getElementById("error").innerText = "";
+}
+
+
+function loadSpamEmail() {
+
+    document.getElementById("emailText").value =
+        "Congratulations! You have won a cash prize of $10,000. Click here to claim your reward.";
+
+    document.getElementById("result").style.display = "none";
+    document.getElementById("error").innerText = "";
+}
+
+
+function clearEmail() {
+
+    document.getElementById("emailText").value = "";
+
+    document.getElementById("result").style.display = "none";
+
+    document.getElementById("error").innerText = "";
+}
+
+</script>
+
+</body>
+</html>
